@@ -86,30 +86,55 @@ public class RevisionAsStringBenchmark {
     /**
      * Convert the integer to an unsigned number.
      */
-    private static void toHexString(StringBuilder sb, long i) {
-        int shift = 4;
-        char[] buf = new char[64];
-        int charPos = 64;
-        int radix = 1 << shift;
-        long mask = radix - 1;
+    private static void toHexString(StringBuilder sb, long l) {
+        int count = 1;
+        long j = l;
+
+        if (l < 0) {
+            count = 16;
+        } else {
+            while ((j >>= 4) != 0) {
+                count++;
+            }
+        }
+
+        char[] buffer = new char[count];
         do {
-            buf[--charPos] = digits[(int)(i & mask)];
-            i >>>= shift;
-        } while (i != 0);
-        sb.append(buf, charPos, (64 - charPos));
+            int t = (int) (l & 15);
+            if (t > 9) {
+                t = t - 10 + 'a';
+            } else {
+                t += '0';
+            }
+            buffer[--count] = (char) t;
+            l >>= 4;
+        } while (count > 0);
+        sb.append(buffer);
     }
 
     private static void toHexString(StringBuilder sb, int i) {
-        char[] buf = new char[32];
-        int shift = 4;
-        int charPos = 32;
-        int radix = 1 << shift;
-        int mask = radix - 1;
+        int count = 1, j = i;
+
+        if (i < 0) {
+            count = 8;
+        } else {
+            while ((j >>>= 4) != 0) {
+                count++;
+            }
+        }
+
+        char[] buffer = new char[count];
         do {
-            buf[--charPos] = digits[i & mask];
-            i >>>= shift;
-        } while (i != 0);
-        sb.append(buf, charPos, (32 - charPos));
+            int t = i & 15;
+            if (t > 9) {
+                t = t - 10 + 'a';
+            } else {
+                t += '0';
+            }
+            buffer[--count] = (char) t;
+            i >>>= 4;
+        } while (count > 0);
+        sb.append(buffer);
     }
 
     public static void main(String[] args) throws RunnerException {

@@ -50,7 +50,8 @@ public class RevisionVectorBenchmark {
 
     @Benchmark
     public String revisionVectorAsString2(BenchmarkState state){
-        return state.revVector.asString2();
+        //TODO clone impl which has the fix
+        return null;
     }
 
     public static void main(String[] args) throws RunnerException {
