@@ -139,7 +139,7 @@ public class RevisionAsStringBenchmark {
 
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
-                .include(RevisionFromStringBenchmark.class.getName() + ".*")
+                .include(RevisionAsStringBenchmark.class.getName() + ".*")
                 .warmupIterations(5)
                 .measurementIterations(5)
                 .threads(4)
