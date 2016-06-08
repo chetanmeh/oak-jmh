@@ -42,9 +42,48 @@ public class RevisionFromStringBenchmark {
     }
 
     @Benchmark
-    public Revision revisionFromStringNew(BenchmarkState state) {
+    public Revision revisionFromString_v1(BenchmarkState state) {
         String rev = state.revision;
         return fromString(rev);
+    }
+
+    @Benchmark
+    public Revision revisionFromString_v3(BenchmarkState state) {
+        String rev = state.revision;
+        boolean isBranch = rev.charAt(0) == 'b';
+        int idx = isBranch ? 2 : 1;
+        if (rev.charAt(idx - 1) != 'r') {
+            throw new IllegalArgumentException(rev);
+        }
+        int len = rev.length();
+        // Parse timestamp
+        long timestamp = 0;
+        for (; idx < len; idx++) {
+            char c = rev.charAt(idx);
+            if (c == '-') {
+                break;
+            }
+            int digit = c >= 'a'? c - 'a' + 10 : c - '0';
+            timestamp = (timestamp << 4) + digit;
+        }
+        // Parse counter
+        int counter = 0;
+        for (idx++; idx < len; idx++) {
+            char c = rev.charAt(idx);
+            if (c == '-') {
+                break;
+            }
+            int digit = c >= 'a' ? c - 'a' + 10 : c - '0';
+            counter = (counter << 4) + digit;
+        }
+        // Parse clusterId
+        int clusterId = 0;
+        for (idx++; idx < len; idx++) {
+            char c = rev.charAt(idx);
+            int digit = c >= 'a' ? c - 'a' + 10 : c - '0';
+            clusterId = (clusterId << 4) + digit;
+        }
+        return new Revision(timestamp, counter, clusterId, isBranch);
     }
 
     static Revision fromString(String rev) {

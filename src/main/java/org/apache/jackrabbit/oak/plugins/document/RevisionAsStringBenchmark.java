@@ -40,8 +40,40 @@ public class RevisionAsStringBenchmark {
     }
 
     @Benchmark
-    public String revisionAsStringNew(BenchmarkState state) {
+    public String revisionAsString_v0(BenchmarkState state) {
+        StringBuilder sb = new StringBuilder(20);
+        Revision r = state.revision;
+        if (r.isBranch()) {
+            sb.append('b');
+        }
+        sb.append('r');
+        toHexString0(sb, r.getTimestamp());
+        sb.append('-');
+        toHexString0(sb, r.getCounter());
+        sb.append('-');
+        toHexString0(sb, r.getClusterId());
+        return sb.toString();
+    }
+
+    @Benchmark
+    public String revisionAsString_v1(BenchmarkState state) {
         return toString(state.revision);
+    }
+
+    @Benchmark
+    public String revisionAsString_v3(BenchmarkState state) {
+        StringBuilder sb = new StringBuilder(20);
+        Revision r = state.revision;
+        if (r.isBranch()) {
+            sb.append('b');
+        }
+        sb.append('r');
+        toHexString2(sb, r.getTimestamp());
+        sb.append('-');
+        toHexString2(sb, r.getCounter());
+        sb.append('-');
+        toHexString2(sb, r.getClusterId());
+        return sb.toString();
     }
 
     static String toString(Revision rev) {
@@ -124,6 +156,61 @@ public class RevisionAsStringBenchmark {
             i >>>= 4;
         } while (count > 0);
         sb.append(buffer);
+    }
+
+    private static void toHexString2(StringBuilder sb, long x) {
+        int bitCount = (64 - Long.numberOfLeadingZeros(x));
+        bitCount = Math.max(0,  ((bitCount + 3) / 4 * 4) - 4);
+        for (int i = bitCount; i >= 0; i -= 4) {
+            int t = (int) (x >> i) & 15;
+            if (t > 9) {
+                t = t - 10 + 'a';
+            } else {
+                t += '0';
+            }
+            sb.append((char) t);
+        }
+    }
+
+    /**
+     * All possible chars for representing a number as a String
+     */
+    final static char[] digits = {
+            '0' , '1' , '2' , '3' , '4' , '5' ,
+            '6' , '7' , '8' , '9' , 'a' , 'b' ,
+            'c' , 'd' , 'e' , 'f' , 'g' , 'h' ,
+            'i' , 'j' , 'k' , 'l' , 'm' , 'n' ,
+            'o' , 'p' , 'q' , 'r' , 's' , 't' ,
+            'u' , 'v' , 'w' , 'x' , 'y' , 'z'
+    };
+
+    /**
+     * Convert the integer to an unsigned number.
+     */
+    private static void toHexString0(StringBuilder sb, long i) {
+        int shift = 4;
+        char[] buf = new char[64];
+        int charPos = 64;
+        int radix = 1 << shift;
+        long mask = radix - 1;
+        do {
+            buf[--charPos] = digits[(int)(i & mask)];
+            i >>>= shift;
+        } while (i != 0);
+        sb.append(buf, charPos, (64 - charPos));
+    }
+
+    private static void toHexString0(StringBuilder sb, int i) {
+        char[] buf = new char[32];
+        int shift = 4;
+        int charPos = 32;
+        int radix = 1 << shift;
+        int mask = radix - 1;
+        do {
+            buf[--charPos] = digits[i & mask];
+            i >>>= shift;
+        } while (i != 0);
+        sb.append(buf, charPos, (32 - charPos));
     }
 
     public static void main(String[] args) throws RunnerException {
